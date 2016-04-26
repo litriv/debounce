@@ -1,19 +1,12 @@
-package main
+package debounce // import "litriv.com/debounce"
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"io"
-	"os"
 	"time"
 	"unicode/utf8"
 )
-
-func main() {
-	d := flag.Int64("i", 300, "duration in milliseconds after last action, after which function executes")
-	Runes(os.Stdin, os.Stdout, time.Duration(*d)*time.Millisecond)
-}
 
 // Signals debounces the input signal, using duration d.  To stop listening, close the input channel; the output channel will be closed automatically.
 func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
@@ -25,7 +18,7 @@ func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
 
 	go func() {
 		defer close(out)
-		
+
 		for x := false; !x; {
 			select {
 			case <-t.C:
@@ -42,7 +35,7 @@ func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
 		}
 		exit <- struct{}{}
 	}()
-	
+
 	return in, out
 }
 
@@ -71,7 +64,7 @@ func Runes(in io.Reader, out io.Writer, d time.Duration) func() {
 			cin <- struct{}{}
 		}
 	}()
-	
+
 	return func() {
 		close(cin)
 	}
