@@ -1,14 +1,16 @@
 package debounce
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"testing"
 	"time"
 )
 
+var d = 300 * time.Millisecond
+
 func TestSignals(t *testing.T) {
-	d := 300 * time.Millisecond
 	in, out := Signals(d)
 
 	go func() {
@@ -31,15 +33,12 @@ func TestSignals(t *testing.T) {
 }
 
 func TestRunes(t *testing.T) {
-
-	d := 300 * time.Millisecond
-
 	pIn, in := io.Pipe()
 	out := new(bytes.Buffer)
 
-	x := Runes(pIn, out, d)
+	IO(pIn, out, d, bufio.ScanRunes)
 
-	_, err := in.Write([]byte{'a', 'b', 'c'})
+	_, err := in.Write([]byte("abc"))
 	if err != nil {
 		t.Error(err)
 	}
@@ -51,9 +50,38 @@ func TestRunes(t *testing.T) {
 		t.Error(err)
 	}
 
-	x()
+	if err = pIn.Close(); err != nil {
+		t.Error(err)
+	}
 
 	if got != 'c' {
 		t.Errorf("Wanted 'c', but got '%c'", got)
+	}
+}
+
+func TestLines(t *testing.T) {
+	pIn, in := io.Pipe()
+	out := new(bytes.Buffer)
+
+	IO(pIn, out, d, bufio.ScanLines)
+
+	_, err := in.Write([]byte("abc\ndef\nghi\n"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	time.Sleep(d * 2)
+
+	got := string(out.Bytes()[:3])
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err = pIn.Close(); err != nil {
+		t.Error(err)
+	}
+
+	if got != "ghi" {
+		t.Errorf("Wanted 'ghi', but got '%s'", got)
 	}
 }

@@ -1,3 +1,4 @@
+// TODO: error handling
 package debounce // import "litriv.com/debounce"
 
 import (
@@ -5,10 +6,9 @@ import (
 	"fmt"
 	"io"
 	"time"
-	"unicode/utf8"
 )
 
-// Signals debounces the input signal, using duration d.  To stop listening, close the input channel; the output channel will be closed automatically.
+// Signals debounces the input signal, using duration d.  To stop listening, close the input channel; all goroutines spawned by Signals will termitae and the output channel will be closed automatically.
 func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
 	in, out := make(chan struct{}), make(chan struct{})
 	t := time.NewTimer(time.Hour)
@@ -39,35 +39,29 @@ func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
 	return in, out
 }
 
-// Runes debounces runes read from in. To stop debouncing, call the returned function.
-func Runes(in io.Reader, out io.Writer, d time.Duration) func() {
-	var c rune
+// IO debounces tokens (according to sf) received from in.  Debouncing stops at EOF or with closed reader.  All goroutines spawned by IO will terminate.
+func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
+	var p []byte
 
 	cin, cout := Signals(d)
 
 	go func() {
-		p := make([]byte, 4)
 		for range cout {
-			n := utf8.EncodeRune(p, c)
-			out.Write(p[:n])
+			out.Write(p)
+			out.Write([]byte("\n"))
 		}
 	}()
 
-	r := bufio.NewReader(in)
-	var err error
+	s := bufio.NewScanner(in)
+	s.Split(sf)
 
 	go func() {
-		for {
-			if c, _, err = r.ReadRune(); err != nil {
-				printErr(err)
-			}
+		for s.Scan() {
+			p = s.Bytes()
 			cin <- struct{}{}
 		}
-	}()
-
-	return func() {
 		close(cin)
-	}
+	}()
 }
 
 func printErr(err error) {
