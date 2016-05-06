@@ -1,6 +1,10 @@
+// Copyright (c) 2016 Jaco Esterhuizen <jaco@litriv.com>
+// All rights reserved.
+// Use of this source code is governed by a MIT-style
+// license that can be found in the LICENSE file.
+
 // Package debounce implements a signal and IO "debouncer".
 package debounce // import "litriv.com/debounce"
-
 import (
 	"bufio"
 	"fmt"
