@@ -55,11 +55,11 @@ func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
 	s.Split(sf)
 
 	go func() {
+		defer close(cin)
 		for s.Scan() {
 			p = s.Bytes()
 			cin <- struct{}{}
 		}
-		close(cin)
 		if s.Err() != nil {
 			printErr(s.Err())
 		}
