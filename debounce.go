@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -41,14 +42,19 @@ func Signals(d time.Duration) (chan<- struct{}, <-chan struct{}) {
 
 // IO debounces tokens (according to sf) received from in.  Debouncing stops at EOF or with closed reader.  All goroutines spawned by IO will terminate.
 func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
-	var p []byte
+	var (
+		mu sync.Mutex
+		p  []byte
+	)
 
 	cin, cout := Signals(d)
 
 	go func() {
 		for range cout {
+			mu.Lock()
 			out.Write(p)
 			out.Write([]byte("\n"))
+			mu.Unlock()
 		}
 	}()
 
@@ -58,7 +64,9 @@ func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
 	go func() {
 		defer close(cin)
 		for s.Scan() {
+			mu.Lock()
 			p = s.Bytes()
+			mu.Unlock()
 			cin <- struct{}{}
 		}
 		if s.Err() != nil {
