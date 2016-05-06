@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"time"
 )
 
@@ -67,5 +68,5 @@ func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
 }
 
 func printErr(err error) {
-	fmt.Println("debounce:", err)
+	fmt.Fprintln(os.Stderr, "debounce:", err)
 }
