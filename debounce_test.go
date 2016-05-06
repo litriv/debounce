@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var d = 300 * time.Millisecond
+const d = 300 * time.Millisecond
 
 func TestSignals(t *testing.T) {
 	in, out := Signals(d)
