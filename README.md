@@ -8,4 +8,4 @@ See CONTRIBUTING.md thanks!
 
 # License
 
-See LICENSE.md
+See LICENSE
