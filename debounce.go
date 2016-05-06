@@ -1,3 +1,4 @@
+// Package debounce implements a signal and IO "debouncer".
 package debounce // import "litriv.com/debounce"
 
 import (
