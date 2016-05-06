@@ -1,4 +1,3 @@
-// TODO: error handling
 package debounce // import "litriv.com/debounce"
 
 import (
@@ -61,6 +60,9 @@ func IO(in io.Reader, out io.Writer, d time.Duration, sf bufio.SplitFunc) {
 			cin <- struct{}{}
 		}
 		close(cin)
+		if s.Err() != nil {
+			printErr(s.Err())
+		}
 	}()
 }
 
